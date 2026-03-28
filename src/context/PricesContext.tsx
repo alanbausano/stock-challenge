@@ -120,7 +120,5 @@ export const PricesProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return <PricesContext.Provider value={{ prices }}>{children}</PricesContext.Provider>;
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 // eslint-disable-next-line react-refresh/only-export-components
 export const usePrices = () => useContext(PricesContext);

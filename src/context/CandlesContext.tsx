@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {
   createContext,
   useCallback,
@@ -28,18 +29,10 @@ export interface ChartRow {
 type CandlesMap = Record<string, Record<BinanceInterval, BinanceCandle[]>>;
 
 // ─── Why is this a Context? ──────────────────────────────────────────────────
-// We use React Context here (rather than a plain hook) for two key reasons:
-//
 // 1. SINGLE WebSocket INSTANCES: If we used a plain hook, every component that
 //    called useCandles() would create its OWN WebSocket connections and REST fetches.
 //    With Context, the Provider is mounted ONCE in the component tree (in main.tsx),
 //    and all consumers share the exact same data and connections.
-//
-// 2. FUTURE EXTENSIBILITY: If we later add a second chart component (e.g., a
-//    candlestick chart, a volume chart, or a detail panel), they can all consume
-//    the same shared candle data via useCandles() without duplicating any logic,
-//    WebSocket connections, or API calls.
-
 interface CandlesContextValue {
   getChartData: (interval: BinanceInterval) => ChartRow[];
   hasData: boolean;
@@ -73,10 +66,6 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
   // Read the watchlist to know WHICH coins need chart data
   const { items } = useWatchlist();
   const symbols = items.map((i) => i.symbol);
-
-  // ─── THE KEY OPTIMIZATION: useRef vs useState ─────────────────────────────
-  // candlesRef stores ALL candle data for ALL symbols and ALL intervals.
-  // We use useRef instead of useState for performance ends.
   const candlesRef = useRef<CandlesMap>({});
 
   // `tick` is a dummy counter. Its only purpose is to force a re-render when incremented.
@@ -84,8 +73,6 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
   // whenever `tick` changes, causing the chart to re-read from candlesRef and redraw.
   const [tick, setTick] = useState(0);
   const [isLoading, setLoading] = useState(false);
-
-  // WebSocket refs
   const wsRef5m = useRef<WebSocket | null>(null);
   const wsRef15m = useRef<WebSocket | null>(null);
 
@@ -137,7 +124,6 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
       // ⬆️ Hide the loading spinner, then flush() triggers ONE single re-render
       // that causes the chart to read all the fresh data and draw the full historical lines.
       .catch(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbols.join(",")]);
 
   // ─── Effect 2: Purge candle data for removed symbols ──────────────────────
@@ -148,7 +134,7 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
     Object.keys(candlesRef.current).forEach((s) => {
       if (!symSet.has(s)) delete candlesRef.current[s];
     });
-  }, [symbols.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [symbols.join(",")]);
 
   // ─── connectKlineWs: Opens a WebSocket for live kline (candlestick) data ──
   // This is a reusable function called twice: once for 5m and once for 15m.
@@ -213,7 +199,6 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
 
       ws.onerror = () => ws.close();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [symbols.join(","), flush],
   );
 
@@ -221,8 +206,6 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
   // We maintain TWO simultaneous WebSocket connections:
   //   1. @kline_5m  → updates the 5-minute candle array in real-time
   //   2. @kline_15m → updates the 15-minute candle array in real-time
-  // This way, when the user toggles between 5m/15m in the UI, the data is
-  // already there and the chart switches instantly without any loading delay.
   useEffect(() => {
     connectKlineWs(wsRef5m, "@kline_5m", "5m");
     connectKlineWs(wsRef15m, "@kline_15m", "15m");
@@ -232,18 +215,12 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
       wsRef5m.current?.close();
       wsRef15m.current?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbols.join(",")]);
 
   // ─── getChartData(): Transforms raw candle arrays into Recharts-compatible rows
-  // This is the function that <MultiStockChart /> calls to get its data.
-  // It merges all symbols' candles for the selected interval into a single sorted
-  // array of ChartRow objects that Recharts can directly render as lines.
   const getChartData = useCallback(
     (interval: BinanceInterval): ChartRow[] => {
       // Step 1: Collect every unique timestamp across ALL symbols for this interval.
-      // Different coins may not have candles at the exact same time if they were
-      // added at different moments, so we union all timestamps.
       const allTimes = new Set<number>();
       symbols.forEach((s) => {
         candlesRef.current[s]?.[interval]?.forEach((c) => allTimes.add(c.time));
@@ -270,13 +247,10 @@ export const CandlesProvider: React.FC<{ children: React.ReactNode }> = ({
     // ⬆️ This function is recreated whenever `tick` changes (via flush()).
     // When tick changes → getChartData gets a new reference → MultiStockChart re-renders
     // → calls getChartData() → reads the latest data from candlesRef → chart redraws.
-    // This is the bridge between the silent useRef writes and the visible chart updates.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [tick, symbols.join(",")],
   );
 
-  // hasData is a simple boolean: true if at least one symbol has at least one candle.
-  // Used by MultiStockChart to decide whether to show the chart or a "waiting" message.
+  // hasData is a simple boolean: true if at least one symbol has at least one candle (loading state).
   const hasData = symbols.some(
     (s) => (candlesRef.current[s]?.["5m"]?.length ?? 0) > 0,
   );
