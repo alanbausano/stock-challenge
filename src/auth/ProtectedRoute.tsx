@@ -5,9 +5,6 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Bypassed Auth0 during development to speed up load times
-  // Uncomment the below lines and remove "return <>{children}</>;" to restore it later.
-
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
 
   if (isLoading) {
