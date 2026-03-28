@@ -67,6 +67,7 @@ export const WatchlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useWatchlist = () => {
   const ctx = useContext(WatchlistContext);
   if (!ctx) throw new Error('useWatchlist must be used inside WatchlistProvider');

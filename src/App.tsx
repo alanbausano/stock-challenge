@@ -15,7 +15,6 @@ import MultiStockChart from "./components/StockChart/MultiStockChart";
 import { useWatchlist } from "./context/WatchlistContext";
 import { usePrices } from "./context/PricesContext";
 import { useAlerts } from "./hooks/useAlerts";
-import { requestNotificationPermission } from "./services/firebase";
 
 export const DRAWER_WIDTH = 300;
 export const COLLAPSED_WIDTH = 64;
@@ -28,7 +27,7 @@ const Dashboard: React.FC = () => {
   useAlerts(items, prices);
 
   useEffect(() => {
-    void requestNotificationPermission();
+    void Notification.requestPermission();
   }, []);
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   IconButton,
@@ -7,14 +7,14 @@ import {
   TextField,
   Tooltip,
   Typography,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import type { WatchlistItem } from '../../types';
-import { useWatchlist } from '../../context/WatchlistContext';
-import { usePrices } from '../../context/PricesContext';
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { WatchlistItem } from "../../types";
+import { useWatchlist } from "../../context/WatchlistContext";
+import { usePrices } from "../../context/PricesContext";
 
 interface Props {
   item: WatchlistItem;
@@ -26,11 +26,17 @@ const SortableItem: React.FC<Props> = ({ item }) => {
   const live = prices[item.symbol];
 
   const [alertInput, setAlertInput] = useState(
-    item.alertPrice !== null ? String(item.alertPrice) : '',
+    item.alertPrice !== null ? String(item.alertPrice) : "",
   );
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: item.symbol });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.symbol });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,36 +49,43 @@ const SortableItem: React.FC<Props> = ({ item }) => {
     setAlertPrice(item.symbol, isNaN(val) ? null : val);
   };
 
-  const isBelow = live && item.alertPrice !== null && live.price < item.alertPrice;
+  const isBelow =
+    live && item.alertPrice !== null && live.price < item.alertPrice;
 
   return (
     <Box ref={setNodeRef} style={style} sx={{ mb: 1 }}>
       <ListItem
         disablePadding
         sx={{
-          bgcolor: 'background.paper',
+          bgcolor: "background.paper",
           borderRadius: 1,
-          border: '1px solid',
-          borderColor: isBelow ? 'error.main' : 'divider',
+          border: "1px solid",
+          borderColor: isBelow ? "error.main" : "divider",
           px: 1,
           py: 1,
-          display: 'flex',
-          alignItems: 'center',
+          display: "flex",
+          alignItems: "center",
           gap: 0.5,
-          overflow: 'hidden',
+          overflow: "hidden",
         }}
       >
         {/* Drag handle */}
         <Box
           {...attributes}
           {...listeners}
-          sx={{ cursor: 'grab', display: 'flex', alignItems: 'center', color: 'text.disabled', flexShrink: 0 }}
+          sx={{
+            cursor: "grab",
+            display: "flex",
+            alignItems: "center",
+            color: "text.disabled",
+            flexShrink: 0,
+          }}
         >
           <DragIndicatorIcon fontSize="small" />
         </Box>
 
         {/* Symbol + price */}
-        <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+        <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
           <Typography
             variant="caption"
             fontWeight={700}
@@ -85,11 +98,11 @@ const SortableItem: React.FC<Props> = ({ item }) => {
           </Typography>
           <Typography
             variant="caption"
-            color={isBelow ? 'error' : 'success.main'}
+            color={isBelow ? "error" : "success.main"}
             display="block"
             sx={{ lineHeight: 1.2 }}
           >
-            {live ? `$${live.price.toFixed(2)}` : '—'}
+            {live ? `$${live.price.toFixed(2)}` : "—"}
           </Typography>
         </Box>
 
@@ -100,17 +113,21 @@ const SortableItem: React.FC<Props> = ({ item }) => {
           onChange={(e) => setAlertInput(e.target.value)}
           onBlur={handleAlertBlur}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();
             }
           }}
           placeholder="Alert"
           inputProps={{
-            'aria-label': `Alert price for ${item.symbol}`,
-            style: { fontSize: 11, padding: '4px 6px' },
+            "aria-label": `Alert price for ${item.symbol}`,
+            style: { fontSize: 11, padding: "4px 6px" },
           }}
           InputProps={{
-            startAdornment: <InputAdornment position="start" sx={{ mr: 0 }}>$</InputAdornment>,
+            startAdornment: (
+              <InputAdornment position="start" sx={{ mr: 0 }}>
+                $
+              </InputAdornment>
+            ),
           }}
           sx={{ width: 80, flexShrink: 0 }}
         />
